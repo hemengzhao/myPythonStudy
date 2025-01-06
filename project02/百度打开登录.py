@@ -4,6 +4,7 @@ from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.chrome.service import Service
 from webdriver_manager.chrome import ChromeDriverManager
+from selenium.common.exceptions import NoSuchElementException
 import time
 
 # 安装必要的库
@@ -22,6 +23,18 @@ class BaiduLogin:
         self.driver = webdriver.Chrome(service=self.service, options=chrome_options)
         self.wait = WebDriverWait(self.driver, 20)  # 增加等待时间到20秒
         self.driver.maximize_window()  # 最大化窗口
+
+    def check_element(self, element_id):
+        try:
+            # 使用显式等待检查元素
+            element = self.wait.until(
+                EC.presence_of_element_located((By.ID, element_id))
+            )
+            print(f"找到元素: {element_id}")
+            return True
+        except:
+            print(f"元素不存在: {element_id}")
+            return False
 
     def login(self, username, password):
         try:
@@ -63,15 +76,20 @@ class BaiduLogin:
             except Exception as e:
                 print("已经是用户名登录模式或切换失败")
             
-            # 输入用户名和密码
-            try:
+            # 检查用户名输入框是否存在
+            if self.check_element("J-userName"):
                 username_input = self.wait.until(
-                    EC.presence_of_element_located((By.ID, "TANGRAM__PSP_11__userName"))
+                    EC.presence_of_element_located((By.ID, "J-userName"))
                 )
                 username_input.clear()
                 username_input.send_keys(username)
                 print("输入用户名成功")
-                
+            else:
+                print("未找到用户名输入框")
+                return
+            
+            # 输入密码
+            try:
                 password_input = self.wait.until(
                     EC.presence_of_element_located((By.ID, "TANGRAM__PSP_11__password"))
                 )
